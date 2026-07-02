@@ -1,5 +1,5 @@
 <title>AWS CLI 프로파일 & 자격증명 트러블슈팅</title>
-<meta name="description" content="AWS CLI에서 InvalidClientTokenId 에러가 발생했을 때 프로파일과 자격증명을 진단하고 복구하는 방법 (Windows / macOS)">
+<meta name="description" content="InvalidClientTokenId부터 프로파일 누락 진단까지 — AWS CLI 인증 문제 점검 가이드 (Windows / macOS)">
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +34,6 @@
 
   .container { max-width: 740px; margin: 0 auto; }
 
-  /* ── Header ── */
   .header {
     padding-bottom: 2.25rem;
     margin-bottom: 2.5rem;
@@ -44,201 +43,81 @@
   .tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
 
   .tag {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-border);
-    border-radius: 3px;
-    padding: 2px 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border);
+    border-radius: 3px; padding: 2px 8px;
   }
 
-  .tag.gray {
-    color: var(--text-muted);
-    background: var(--surface2);
-    border-color: var(--border);
-  }
+  .tag.gray { color: var(--text-muted); background: var(--surface2); border-color: var(--border); }
 
   h1 {
-    font-size: clamp(1.45rem, 4vw, 2rem);
-    font-weight: 700;
-    line-height: 1.25;
-    text-wrap: balance;
-    color: #fff;
-    margin-bottom: 0.7rem;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.45rem, 4vw, 2rem); font-weight: 700; line-height: 1.25;
+    text-wrap: balance; color: #fff; margin-bottom: 0.7rem; letter-spacing: -0.01em;
   }
 
   .subtitle { font-size: 14px; color: var(--text-muted); }
 
   .meta {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1.25rem;
-    font-size: 12px;
-    color: var(--text-dim);
-    font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; gap: 1rem; margin-top: 1.25rem;
+    font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums;
   }
 
-  .meta span { display: flex; align-items: center; gap: 0.3rem; }
-
-  /* ── Section headings ── */
   h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--accent);
-    margin: 2.75rem 0 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; color: var(--accent);
+    margin: 2.75rem 0 1.1rem; display: flex; align-items: center; gap: 0.6rem;
   }
 
   h2 .num {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 11px;
-    color: var(--text-dim);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 1px 6px;
-    font-weight: 400;
-    letter-spacing: 0;
+    font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; color: var(--text-dim);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 3px;
+    padding: 1px 6px; font-weight: 400; letter-spacing: 0;
   }
 
   h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text);
-    margin: 1.4rem 0 0.55rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-size: 0.875rem; font-weight: 600; color: var(--text);
+    margin: 1.4rem 0 0.55rem; text-transform: uppercase; letter-spacing: 0.06em;
   }
 
   p { color: var(--text-muted); margin-bottom: 0.7rem; font-size: 14px; }
-
   hr { border: none; border-top: 1px solid var(--border); margin: 2.25rem 0; }
 
-  /* ── Concept grid ── */
-  .concept-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.85rem;
-    margin: 1rem 0;
-  }
-
+  .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1rem 0; }
   @media (max-width: 500px) { .concept-grid { grid-template-columns: 1fr; } }
 
-  .concept-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.1rem 1.25rem;
-  }
-
-  .concept-card .c-eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 0.4rem;
-  }
-
-  .concept-card .c-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 0.45rem;
-  }
-
-  .concept-card .c-desc {
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin: 0 0 0.65rem;
-  }
+  .concept-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; }
+  .concept-card .c-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.4rem; }
+  .concept-card .c-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.45rem; }
+  .concept-card .c-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0 0 0.65rem; }
 
   .file-pill {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 11.5px;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-border);
-    border-radius: 3px;
-    padding: 2px 7px;
-    display: inline-block;
-    word-break: break-all;
+    font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px;
+    color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border);
+    border-radius: 3px; padding: 2px 7px; display: inline-block; word-break: break-all;
   }
 
-  /* ── OS Tab switch ── */
-  .os-switch-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 1rem 0;
-  }
-
-  .os-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-  }
+  .os-switch-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1rem 0; }
+  .os-tabs { display: flex; border-bottom: 1px solid var(--border); }
 
   .os-tab {
-    flex: 1;
-    padding: 0.65rem 1rem;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
+    flex: 1; padding: 0.65rem 1rem; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   }
 
   .os-tab:hover { background: var(--surface2); }
-
-  .os-tab.active[data-os="win"] {
-    color: var(--win-blue);
-    border-bottom-color: var(--win-blue);
-    background: rgba(74, 164, 240, 0.06);
-  }
-
-  .os-tab.active[data-os="mac"] {
-    color: var(--mac-gray);
-    border-bottom-color: var(--mac-gray);
-    background: rgba(160, 168, 184, 0.06);
-  }
+  .os-tab.active[data-os="win"] { color: var(--win-blue); border-bottom-color: var(--win-blue); background: rgba(74,164,240,0.06); }
+  .os-tab.active[data-os="mac"] { color: var(--mac-gray); border-bottom-color: var(--mac-gray); background: rgba(160,168,184,0.06); }
 
   .os-tab-pane { display: none; padding: 1.25rem; }
   .os-tab-pane.active { display: block; }
 
-  /* ── Terminal block ── */
-  .term {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 0.75rem 0;
-  }
+  .term { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 0.75rem 0; }
 
   .term-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.45rem 0.8rem;
-    background: #12151E;
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.35rem;
+    padding: 0.45rem 0.8rem; background: #12151E; border-bottom: 1px solid var(--border);
   }
 
   .dot { width: 9px; height: 9px; border-radius: 50%; }
@@ -246,173 +125,77 @@
   .dot.y { background: #FFBD2E; }
   .dot.g { background: #28CA42; }
 
-  .term-label {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-left: auto;
-  }
+  .term-label { font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; color: var(--text-dim); margin-left: auto; }
 
   .term pre {
-    padding: 1rem 1.1rem;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12.5px;
-    line-height: 1.65;
-    overflow-x: auto;
-    color: var(--text);
-    white-space: pre;
-    tab-size: 2;
+    padding: 1rem 1.1rem; font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px; line-height: 1.65; overflow-x: auto; color: var(--text); white-space: pre; tab-size: 2;
   }
 
-  .p  { color: #4ADE80; }   /* prompt */
-  .c  { color: #DCE1ED; }   /* command */
-  .e  { color: #F87171; }   /* error */
-  .s  { color: #4ADE80; }   /* success */
-  .cm { color: #4A5068; }   /* comment */
-  .k  { color: #FF9900; }   /* key / highlight */
-  .v  { color: #A78BFA; }   /* value */
+  .p  { color: #4ADE80; }
+  .c  { color: #DCE1ED; }
+  .e  { color: #F87171; }
+  .s  { color: #4ADE80; }
+  .cm { color: #4A5068; }
+  .k  { color: #FF9900; }
+  .v  { color: #A78BFA; }
 
-  /* ── Table ── */
   .table-wrap { overflow-x: auto; margin: 0.75rem 0; }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    min-width: 460px;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
 
   thead th {
-    text-align: left;
-    padding: 0.55rem 0.85rem;
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    border-bottom: 1px solid var(--border);
-    font-weight: 700;
+    text-align: left; padding: 0.55rem 0.85rem; background: var(--surface2); color: var(--text-dim);
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    border-bottom: 1px solid var(--border); font-weight: 700;
   }
 
-  tbody td {
-    padding: 0.6rem 0.85rem;
-    border-bottom: 1px solid rgba(37,42,56,0.6);
-    color: var(--text-muted);
-    vertical-align: top;
-  }
-
+  tbody td { padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(37,42,56,0.6); color: var(--text-muted); vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; color: var(--text); white-space: nowrap; }
 
-  tbody td:first-child {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12px;
-    color: var(--text);
-    white-space: nowrap;
-  }
-
-  /* ── Callout ── */
-  .callout {
-    border-radius: 0 7px 7px 0;
-    border-left: 3px solid;
-    padding: 0.85rem 1.1rem;
-    margin: 0.85rem 0;
-    background: var(--surface);
-  }
-
+  .callout { border-radius: 0 7px 7px 0; border-left: 3px solid; padding: 0.85rem 1.1rem; margin: 0.85rem 0; background: var(--surface); }
   .callout.warn { border-color: var(--warn); }
   .callout.ok   { border-color: var(--ok); }
   .callout.info { border-color: var(--accent); }
 
-  .callout .callout-label {
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    margin-bottom: 0.3rem;
-  }
-
+  .callout .callout-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.3rem; }
   .callout.warn .callout-label { color: var(--warn); }
   .callout.ok   .callout-label { color: var(--ok); }
   .callout.info .callout-label { color: var(--accent); }
-
   .callout p { font-size: 13px; margin: 0; color: var(--text-muted); }
 
-  /* ── Timeline ── */
-  .timeline { padding-left: 1.6rem; position: relative; margin: 1.1rem 0; }
+  .checklist { list-style: none; padding: 0; margin: 0.75rem 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 7px;
-    top: 10px;
-    bottom: 10px;
-    width: 2px;
-    background: var(--border);
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 0.65rem;
+    padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(37,42,56,0.5);
+    font-size: 13px; color: var(--text-muted);
   }
 
-  .tl-item {
-    position: relative;
-    margin-bottom: 1.4rem;
+  .checklist li:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: 'Consolas', monospace; font-size: 11px; color: var(--accent);
+    background: var(--accent-dim); border: 1px solid var(--accent-border);
+    border-radius: 3px; padding: 1px 6px; flex-shrink: 0; margin-top: 1px;
+    font-variant-numeric: tabular-nums;
   }
 
-  .tl-item::before {
-    content: '';
-    position: absolute;
-    left: -1.35rem;
-    top: 5px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--bg);
-  }
-
-  .tl-item.err::before  { background: var(--err); }
-  .tl-item.inv::before  { background: var(--warn); }
-  .tl-item.fix::before  { background: var(--ok); }
-
-  .tl-badge {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    margin-bottom: 0.2rem;
-  }
-
-  .tl-item.err .tl-badge  { color: var(--err); }
-  .tl-item.inv .tl-badge  { color: var(--warn); }
-  .tl-item.fix .tl-badge  { color: var(--ok); }
-
-  .tl-title { font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
-  .tl-desc  { font-size: 13px; color: var(--text-muted); margin: 0; }
-
-  /* ── inline code ── */
   code {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12.5px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 1px 5px;
-    color: var(--accent);
+    font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 3px; padding: 1px 5px; color: var(--accent);
   }
 
-  /* ── Footer ── */
   .footer {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    font-size: 12px;
-    color: var(--text-dim);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-dim);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
   }
 </style>
 
 <div class="container">
 
-  <!-- Header -->
   <header class="header">
     <div class="tag-row">
       <span class="tag">AWS CLI</span>
@@ -420,348 +203,301 @@
       <span class="tag gray">DevOps</span>
     </div>
     <h1>AWS CLI 프로파일 & 자격증명 트러블슈팅</h1>
-    <p class="subtitle">
-      <code>InvalidClientTokenId</code> 에러부터 프로파일 누락 진단까지 — Windows & macOS 대응 가이드
-    </p>
+    <p class="subtitle"><code>InvalidClientTokenId</code>부터 프로파일 누락 진단까지 — AWS CLI 인증 문제 점검 가이드</p>
     <div class="meta">
-      <span>2026-06-30</span>
+      <span>2026-07-02</span>
       <span>·</span>
       <span>Windows / macOS</span>
     </div>
   </header>
 
+  <p>AWS CLI를 사용하다 보면 특정 프로파일로 명령을 실행했을 때 다음과 같은 인증 오류를 만날 수 있다.</p>
 
-  <!-- 1. 개념 정리 -->
-  <h2><span class="num">01</span> Config vs Credentials — 뭐가 다른가</h2>
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="e">An error occurred (InvalidClientTokenId) when calling the AssumeRole operation:
+The security token included in the request is invalid.</span></pre>
+  </div>
 
-  <p>AWS CLI는 <strong>두 개의 파일</strong>로 설정을 관리합니다. 혼용해서 쓰면 헷갈리니 역할을 먼저 구분하세요.</p>
+  <p>처음 보면 AWS 서비스 자체 문제처럼 보일 수 있지만, 실제로는 로컬에 저장된 AWS CLI 프로파일, Access Key, Session Token, <code>source_profile</code> 설정 문제인 경우가 많다.</p>
+
+
+  <h2><span class="num">01</span> AWS CLI 설정 파일 구조</h2>
+
+  <p>AWS CLI는 기본적으로 두 개의 파일을 사용한다.</p>
 
   <div class="concept-grid">
     <div class="concept-card">
       <div class="c-eyebrow">설정 파일</div>
       <div class="c-title">config</div>
-      <p class="c-desc">리전, 출력 형식, role_arn, source_profile 등 <em>동작 방식</em>을 정의합니다. 민감 정보는 없습니다.</p>
+      <p class="c-desc">리전, 출력 형식, Role ARN, source_profile 등 동작 설정을 저장한다. 구성 방식에 따라 민감 정보가 포함될 수 있으므로 외부 공유 전 확인이 필요하다.</p>
       <span class="file-pill">~/.aws/config</span>
     </div>
     <div class="concept-card">
       <div class="c-eyebrow">인증 파일</div>
       <div class="c-title">credentials</div>
-      <p class="c-desc">Access Key ID, Secret Key, Session Token 등 <em>실제 자격증명</em>을 저장합니다. 외부 노출 금지.</p>
+      <p class="c-desc">Access Key ID, Secret Access Key, Session Token 저장. 외부 노출 금지.</p>
       <span class="file-pill">~/.aws/credentials</span>
     </div>
   </div>
 
   <div class="callout info">
-    <div class="callout-label">Profile이란?</div>
-    <p>두 파일에서 <code>[profile 이름]</code> (config) / <code>[이름]</code> (credentials)으로 묶인 설정 블록입니다. <code>--profile</code> 플래그로 원하는 계정/역할로 전환할 수 있습니다.</p>
+    <div class="callout-label">프로파일 표기 방식 차이</div>
+    <p>config 파일은 <code>[profile example]</code>, credentials 파일은 <code>[example]</code> 형식을 사용한다. <code>profile</code> 접두어 유무에 주의.</p>
   </div>
-
-
-  <!-- 2. 파일 위치 & 확인 방법 -->
-  <h2><span class="num">02</span> 파일 위치 및 확인 방법</h2>
-
-  <div class="os-switch-wrap" id="switch-files">
-    <div class="os-tabs">
-      <button class="os-tab active" data-os="win" data-target="switch-files">
-        🪟 Windows
-      </button>
-      <button class="os-tab" data-os="mac" data-target="switch-files">
-        🍎 macOS / Linux
-      </button>
-    </div>
-
-    <div class="os-tab-pane active" data-os="win">
-      <h3>파일 경로</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">경로</div></div>
-        <pre><span class="k">config</span>      : C:\Users\사용자명\.aws\config
-<span class="k">credentials</span> : C:\Users\사용자명\.aws\credentials</pre>
-      </div>
-
-      <h3>터미널에서 내용 보기</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">cmd / PowerShell</div></div>
-        <pre><span class="cm"># config 내용 출력</span>
-<span class="p">></span> <span class="c">type %USERPROFILE%\.aws\config</span>
-
-<span class="cm"># credentials 내용 출력</span>
-<span class="p">></span> <span class="c">type %USERPROFILE%\.aws\credentials</span>
-
-<span class="cm"># 메모장으로 열기</span>
-<span class="p">></span> <span class="c">notepad %USERPROFILE%\.aws\credentials</span></pre>
-      </div>
-
-      <h3>프로파일 목록 확인</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">cmd / PowerShell</div></div>
-        <pre><span class="p">></span> <span class="c">aws configure list-profiles</span>
-<span class="s">devops
-user-ai-hyejun
-default</span>
-
-<span class="cm"># 특정 프로파일 설정 상세 보기</span>
-<span class="p">></span> <span class="c">aws configure list --profile devops</span></pre>
-      </div>
-    </div>
-
-    <div class="os-tab-pane" data-os="mac">
-      <h3>파일 경로</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">경로</div></div>
-        <pre><span class="k">config</span>      : ~/.aws/config
-<span class="k">credentials</span> : ~/.aws/credentials</pre>
-      </div>
-
-      <h3>터미널에서 내용 보기</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">Terminal / iTerm2</div></div>
-        <pre><span class="cm"># config 내용 출력</span>
-<span class="p">$</span> <span class="c">cat ~/.aws/config</span>
-
-<span class="cm"># credentials 내용 출력</span>
-<span class="p">$</span> <span class="c">cat ~/.aws/credentials</span>
-
-<span class="cm"># VS Code로 열기</span>
-<span class="p">$</span> <span class="c">code ~/.aws/credentials</span></pre>
-      </div>
-
-      <h3>프로파일 목록 확인</h3>
-      <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">Terminal / iTerm2</div></div>
-        <pre><span class="p">$</span> <span class="c">aws configure list-profiles</span>
-<span class="s">devops
-default</span>
-
-<span class="cm"># 특정 프로파일 설정 상세 보기</span>
-<span class="p">$</span> <span class="c">aws configure list --profile devops</span></pre>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- 3. 주요 진단 명령어 -->
-  <h2><span class="num">03</span> 주요 진단 명령어</h2>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>명령어</th>
-          <th>설명</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>aws configure list-profiles</td>
-          <td>등록된 프로파일 전체 목록 출력</td>
-        </tr>
-        <tr>
-          <td>aws configure list --profile &lt;name&gt;</td>
-          <td>특정 프로파일의 설정(region, key, source 등) 확인</td>
-        </tr>
-        <tr>
-          <td>aws sts get-caller-identity --profile &lt;name&gt;</td>
-          <td>해당 프로파일로 실제 AWS 인증이 되는지 확인 — 가장 먼저 실행할 진단 명령</td>
-        </tr>
-        <tr>
-          <td>aws configure --profile &lt;name&gt;</td>
-          <td>프로파일 자격증명 등록 또는 갱신</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-  <!-- 4. 트러블슈팅 타임라인 -->
-  <h2><span class="num">04</span> 실제 트러블슈팅 — 에러부터 해결까지</h2>
-
-  <p>SSM 포트포워딩 시도 중 발생한 에러를 단계별로 추적한 흐름입니다.</p>
-
-  <h3>에러 발생</h3>
-  <div class="term">
-    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">cmd</div></div>
-    <pre><span class="p">></span> <span class="c">aws ssm start-session \
-    --target i-0b3439f7b2088d79b \
-    --document-name AWS-StartPortForwardingSession \
-    --parameters "{\"portNumber\":[\"443\"],\"localPortNumber\":[\"8443\"]}" \
-    --profile devops</span>
-
-<span class="e">aws: [ERROR]: An error occurred (InvalidClientTokenId)
-when calling the AssumeRole operation:
-The security token included in the request is invalid.</span></pre>
-  </div>
-
-  <h3>원인 추적 타임라인</h3>
-
-  <div class="timeline">
-    <div class="tl-item err">
-      <div class="tl-badge">Step 1 — 에러 확인</div>
-      <div class="tl-title">InvalidClientTokenId 발생</div>
-      <p class="tl-desc"><code>devops</code> 프로파일로 AssumeRole 시도 중 토큰 무효 에러. 자격증명 문제로 일단 의심.</p>
-    </div>
-    <div class="tl-item err">
-      <div class="tl-badge">Step 2 — source profile 추적</div>
-      <div class="tl-title">devops는 default를 source_profile로 사용</div>
-      <p class="tl-desc">config 확인 결과 <code>devops</code>는 <code>role_arn</code>을 AssumeRole 하되 <code>source_profile = default</code>. default가 문제일 가능성 확인.</p>
-    </div>
-    <div class="tl-item err">
-      <div class="tl-badge">Step 3 — default도 실패</div>
-      <div class="tl-title">aws sts get-caller-identity --profile default 에러</div>
-      <p class="tl-desc">default 프로파일도 <code>InvalidAccessKeyId</code> — credentials 파일의 Access Key 자체가 AWS에 존재하지 않음.</p>
-    </div>
-    <div class="tl-item inv">
-      <div class="tl-badge">Step 4 — 파일 직접 확인</div>
-      <div class="tl-title">credentials 파일 열어보니 [devops] 섹션 자체가 없음</div>
-      <p class="tl-desc">핵심 원인 발견. <code>[default]</code>만 남아있고 <code>[devops]</code> 블록이 누락되어 있었음. 어느 시점에 파일이 초기화되거나 덮어써진 것으로 추정.</p>
-    </div>
-    <div class="tl-item fix">
-      <div class="tl-badge">Step 5 — 해결</div>
-      <div class="tl-title">aws configure --profile devops 로 재등록</div>
-      <p class="tl-desc">새 Access Key를 발급받아 <code>devops</code> 프로파일을 재등록. SSM 포트포워딩 정상 동작 확인.</p>
-    </div>
-  </div>
-
-
-  <!-- 5. credentials 파일 구조 이해 -->
-  <h2><span class="num">05</span> credentials 파일 구조 이해</h2>
-
-  <p>에러 유형에 따라 자격증명 파일 안에 어떤 항목이 있는지 확인하는 것이 진단의 핵심입니다.</p>
 
   <div class="term">
-    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">~/.aws/credentials 예시</div></div>
-    <pre><span class="k">[default]</span>
-<span class="v">aws_access_key_id</span>     = AKIA...          <span class="cm"># AKIA로 시작 = 장기 키</span>
-<span class="v">aws_secret_access_key</span> = xxxxxxxxxxxxxx
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">파일 예시</div></div>
+    <pre><span class="cm"># ~/.aws/config</span>
+<span class="k">[profile example]</span>
+<span class="v">region</span> = ap-northeast-2
+<span class="v">output</span> = json
 
-<span class="k">[devops]</span>                                  <span class="cm"># ← 이 블록이 없으면 프로파일 누락</span>
+<span class="cm"># ~/.aws/credentials</span>
+<span class="k">[example]</span>                    <span class="cm"># profile 접두어 없음</span>
 <span class="v">aws_access_key_id</span>     = AKIA...
-<span class="v">aws_secret_access_key</span> = xxxxxxxxxxxxxx
-<span class="v">aws_session_token</span>     = xxxxx...         <span class="cm"># 있으면 임시 자격증명 → 만료 가능</span></pre>
+<span class="v">aws_secret_access_key</span> = ...</pre>
   </div>
+
+
+  <h2><span class="num">02</span> 먼저 실행할 진단 명령어</h2>
+
+  <p>인증 문제가 발생하면 가장 먼저 아래 명령어를 실행한다.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="p">$</span> <span class="c">aws sts get-caller-identity --profile &lt;profile-name&gt;</span>
+
+<span class="cm"># 정상일 때</span>
+<span class="s">{
+    "UserId": "AROAXXXXXXXXXX:session",
+    "Account": "123456789012",
+    "Arn": "arn:aws:sts::123456789012:assumed-role/ExampleRole/session"
+}</span>
+
+<span class="cm"># 실패할 때</span>
+<span class="e">An error occurred (InvalidClientTokenId) ...</span></pre>
+  </div>
+
+  <p>정상이라면 현재 인증된 계정과 ARN이 출력된다. 실패한다면 자격증명, Session Token, Role Assume 설정, 환경변수 중 하나를 의심해야 한다.</p>
+
+
+  <h2><span class="num">03</span> 프로파일 목록과 설정 확인</h2>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="cm"># 등록된 프로파일 전체 목록</span>
+<span class="p">$</span> <span class="c">aws configure list-profiles</span>
+
+<span class="cm"># 특정 프로파일 설정 상세 확인</span>
+<span class="p">$</span> <span class="c">aws configure list --profile &lt;profile-name&gt;</span></pre>
+  </div>
+
+  <p>확인할 항목: 어떤 Access Key를 쓰는지, 환경변수에서 값을 가져오는지, <code>source_profile</code>을 사용하는 AssumeRole 구조인지.</p>
+
+
+  <h2><span class="num">04</span> AssumeRole 프로파일의 source_profile 확인</h2>
+
+  <p>직접 Access Key를 갖지 않고 다른 프로파일을 기반으로 Role을 Assume하는 구조가 있다.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">~/.aws/config</div></div>
+    <pre><span class="k">[profile workload-admin]</span>
+<span class="v">region</span>            = ap-northeast-2
+<span class="v">role_arn</span>          = arn:aws:iam::123456789012:role/ExampleRole
+<span class="v">source_profile</span>    = default         <span class="cm"># default 프로파일의 자격증명으로 Role Assume</span>
+<span class="v">role_session_name</span> = workload-admin-session</pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-label">중요</div>
+    <p>이 구조에서는 <code>credentials</code> 파일에 <code>[workload-admin]</code> 블록이 없어도 정상이다. 실제 Access Key는 <code>source_profile</code>인 <code>default</code>에만 있으면 된다. <code>workload-admin</code>에서 에러가 발생하면 <strong>source_profile인 default를 먼저 확인</strong>해야 한다.</p>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="cm"># source_profile 먼저 확인</span>
+<span class="p">$</span> <span class="c">aws sts get-caller-identity --profile default</span>
+
+<span class="cm"># 이후 대상 프로파일 확인</span>
+<span class="p">$</span> <span class="c">aws sts get-caller-identity --profile workload-admin</span></pre>
+  </div>
+
+
+  <h2><span class="num">05</span> 자주 발생하는 에러와 원인</h2>
 
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
           <th>에러 메시지</th>
-          <th>원인</th>
-          <th>해결</th>
+          <th>주요 원인</th>
+          <th>확인할 것</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>InvalidClientTokenId</td>
-          <td>자격증명 무효 (만료, 삭제, 누락)</td>
-          <td>프로파일 재등록 또는 새 키 발급</td>
+          <td>토큰 또는 자격증명 무효. AssumeRole 중 발생했다면 대상 프로파일보다 source_profile의 자격증명을 먼저 확인</td>
+          <td>source_profile의 Access Key / Session Token</td>
         </tr>
         <tr>
           <td>InvalidAccessKeyId</td>
-          <td>해당 Access Key가 AWS에 존재하지 않음</td>
-          <td>IAM 콘솔에서 새 키 발급</td>
+          <td>Access Key가 존재하지 않음</td>
+          <td>credentials 파일의 Access Key</td>
         </tr>
         <tr>
           <td>ExpiredTokenException</td>
-          <td>aws_session_token 만료</td>
-          <td>임시 자격증명 재발급 (STS / SSO)</td>
+          <td>임시 토큰 만료</td>
+          <td>aws_session_token 갱신</td>
         </tr>
         <tr>
-          <td>프로파일 없음 / NoCredentialProviders</td>
-          <td>credentials 파일에 해당 블록 누락</td>
-          <td>aws configure --profile &lt;name&gt; 으로 재등록</td>
+          <td>NoCredentialProviders</td>
+          <td>자격증명 없음</td>
+          <td>프로파일 존재 여부, credentials 파일</td>
+        </tr>
+        <tr>
+          <td>config profile could not be found</td>
+          <td>config/credentials에 프로파일 없음</td>
+          <td>프로파일명 오타, 파일 위치</td>
         </tr>
       </tbody>
     </table>
   </div>
 
 
-  <!-- 6. 프로파일 등록/갱신 -->
-  <h2><span class="num">06</span> 프로파일 등록 & 자격증명 갱신</h2>
+  <h2><span class="num">06</span> credentials 파일 직접 확인</h2>
 
-  <div class="os-switch-wrap" id="switch-configure">
+  <div class="os-switch-wrap" id="switch-cred">
     <div class="os-tabs">
-      <button class="os-tab active" data-os="win" data-target="switch-configure">
-        🪟 Windows
-      </button>
-      <button class="os-tab" data-os="mac" data-target="switch-configure">
-        🍎 macOS / Linux
-      </button>
+      <button class="os-tab active" data-os="win" data-target="switch-cred">🪟 Windows</button>
+      <button class="os-tab" data-os="mac" data-target="switch-cred">🍎 macOS / Linux</button>
     </div>
-
     <div class="os-tab-pane active" data-os="win">
       <div class="term">
         <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">cmd / PowerShell</div></div>
-        <pre><span class="cm"># 프로파일 등록 (없으면 생성, 있으면 갱신)</span>
-<span class="p">></span> <span class="c">aws configure --profile devops</span>
-
-<span class="k">AWS Access Key ID [None]:</span> <span class="v">AKIA...</span>
-<span class="k">AWS Secret Access Key [None]:</span> <span class="v">xxxxxxxx</span>
-<span class="k">Default region name [None]:</span> <span class="v">ap-northeast-2</span>
-<span class="k">Default output format [None]:</span> <span class="v">json</span>
-
-<span class="cm"># 등록 확인</span>
-<span class="p">></span> <span class="c">aws sts get-caller-identity --profile devops</span>
-<span class="s">{
-    "UserId": "AROAXXXXXXXXXX:session",
-    "Account": "697015998430",
-    "Arn": "arn:aws:sts::697015998430:assumed-role/..."
-}</span></pre>
+        <pre><span class="p">></span> <span class="c">type %USERPROFILE%\.aws\credentials</span>
+<span class="p">></span> <span class="c">notepad %USERPROFILE%\.aws\credentials</span></pre>
       </div>
     </div>
-
     <div class="os-tab-pane" data-os="mac">
       <div class="term">
-        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">Terminal / iTerm2</div></div>
-        <pre><span class="cm"># 프로파일 등록 (없으면 생성, 있으면 갱신)</span>
-<span class="p">$</span> <span class="c">aws configure --profile devops</span>
+        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">Terminal</div></div>
+        <pre><span class="cm"># 내용 출력</span>
+<span class="p">$</span> <span class="c">cat ~/.aws/credentials</span>
+<span class="p">$</span> <span class="c">cat ~/.aws/config</span>
 
-<span class="k">AWS Access Key ID [None]:</span> <span class="v">AKIA...</span>
-<span class="k">AWS Secret Access Key [None]:</span> <span class="v">xxxxxxxx</span>
-<span class="k">Default region name [None]:</span> <span class="v">ap-northeast-2</span>
-<span class="k">Default output format [None]:</span> <span class="v">json</span>
-
-<span class="cm"># 등록 확인</span>
-<span class="p">$</span> <span class="c">aws sts get-caller-identity --profile devops</span>
-<span class="s">{
-    "UserId": "AROAXXXXXXXXXX:session",
-    "Account": "697015998430",
-    "Arn": "arn:aws:sts::697015998430:assumed-role/..."
-}</span></pre>
+<span class="cm"># 편집</span>
+<span class="p">$</span> <span class="c">vi ~/.aws/credentials</span>
+<span class="p">$</span> <span class="c">code ~/.aws/credentials</span>   <span class="cm"># VS Code</span></pre>
       </div>
     </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">credentials 파일 예시</div></div>
+    <pre><span class="k">[default]</span>
+<span class="v">aws_access_key_id</span>     = AKIA...
+<span class="v">aws_secret_access_key</span> = ...
+
+<span class="k">[workload]</span>
+<span class="v">aws_access_key_id</span>     = AKIA...
+<span class="v">aws_secret_access_key</span> = ...
+<span class="v">aws_session_token</span>     = ...    <span class="cm"># 있으면 임시 자격증명 → 만료 가능</span></pre>
   </div>
 
   <div class="callout warn">
-    <div class="callout-label">주의</div>
-    <p><code>aws configure</code> (프로파일 지정 없음) 를 실행하면 <code>[default]</code>만 갱신되고 다른 프로파일 블록은 그대로입니다. 단, credentials 파일이 어떤 이유로 <strong>전체 초기화</strong>되면 모든 프로파일이 사라지므로 주기적으로 파일을 백업해두세요.</p>
+    <div class="callout-label">임시 자격증명 주의</div>
+    <p><code>aws_session_token</code>이 있으면 임시 자격증명이다. 수 시간~수일 내 만료되므로 인증 오류 발생 시 가장 먼저 확인해야 한다. 장기 Access Key로 전환할 때는 credentials 파일에서 <code>aws_session_token</code> 항목을 직접 제거해야 한다.</p>
   </div>
 
 
-  <!-- 7. 예방 팁 -->
-  <h2><span class="num">07</span> 예방 및 관리 팁</h2>
+  <h2><span class="num">07</span> 환경변수 확인</h2>
 
-  <div class="callout ok">
-    <div class="callout-label">credentials 파일 백업</div>
-    <p>팀 내 스크립트나 Terraform 등이 <code>aws configure</code>를 자동 실행하면 파일이 덮어써질 수 있습니다. 프로파일 추가 전후로 파일을 별도로 복사해두세요.</p>
+  <p>credentials 파일을 수정했는데도 계속 오류가 발생한다면 환경변수를 확인해야 한다. AWS CLI는 환경변수에 설정된 자격증명을 우선 사용할 수 있다.</p>
+
+  <div class="os-switch-wrap" id="switch-env">
+    <div class="os-tabs">
+      <button class="os-tab active" data-os="win" data-target="switch-env">🪟 Windows</button>
+      <button class="os-tab" data-os="mac" data-target="switch-env">🍎 macOS / Linux</button>
+    </div>
+    <div class="os-tab-pane active" data-os="win">
+      <div class="term">
+        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">cmd</div></div>
+        <pre><span class="p">></span> <span class="c">set AWS</span></pre>
+      </div>
+      <div class="term">
+        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">PowerShell</div></div>
+        <pre><span class="p">></span> <span class="c">Get-ChildItem Env:AWS*</span></pre>
+      </div>
+    </div>
+    <div class="os-tab-pane" data-os="mac">
+      <div class="term">
+        <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">Terminal</div></div>
+        <pre><span class="p">$</span> <span class="c">env | grep ^AWS_</span></pre>
+      </div>
+    </div>
   </div>
 
-  <div class="callout ok">
-    <div class="callout-label">source_profile 의존 관계 파악</div>
-    <p>config에서 <code>source_profile = default</code>로 설정된 프로파일은 default 자격증명도 유효해야 합니다. 에러 발생 시 source_profile 먼저 점검하세요.</p>
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">확인할 주요 환경변수</div></div>
+    <pre><span class="k">AWS_ACCESS_KEY_ID</span>
+<span class="k">AWS_SECRET_ACCESS_KEY</span>
+<span class="k">AWS_SESSION_TOKEN</span>           <span class="cm"># 만료된 값이 남아있으면 파일 수정해도 계속 실패</span>
+<span class="k">AWS_PROFILE</span>
+<span class="k">AWS_DEFAULT_PROFILE</span>
+<span class="k">AWS_SHARED_CREDENTIALS_FILE</span>
+<span class="k">AWS_CONFIG_FILE</span></pre>
   </div>
 
-  <div class="callout ok">
-    <div class="callout-label">aws_session_token 여부 확인</div>
-    <p>credentials에 <code>aws_session_token</code> 항목이 있으면 임시 자격증명입니다. 수 시간~수일 내 만료되므로 에러 발생 시 이 값부터 확인하세요.</p>
+
+  <h2><span class="num">08</span> 프로파일 재등록</h2>
+
+  <p>장기 Access Key 기반 프로파일을 등록하거나 갱신할 때 사용한다. 임시 자격증명 기반 프로파일을 사용 중이었다면 기존 <code>aws_session_token</code>이 남아 있지 않은지 함께 확인한다.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="cm"># 프로파일 등록 (없으면 생성, 있으면 갱신)</span>
+<span class="p">$</span> <span class="c">aws configure --profile &lt;profile-name&gt;</span>
+
+<span class="k">AWS Access Key ID [None]:</span>        <span class="v">AKIA...</span>
+<span class="k">AWS Secret Access Key [None]:</span>    <span class="v">xxxxxxxx</span>
+<span class="k">Default region name [None]:</span>      <span class="v">ap-northeast-2</span>
+<span class="k">Default output format [None]:</span>    <span class="v">json</span>
+
+<span class="cm"># 등록 후 반드시 인증 확인</span>
+<span class="p">$</span> <span class="c">aws sts get-caller-identity --profile &lt;profile-name&gt;</span></pre>
   </div>
+
+
+  <h2><span class="num">09</span> 추천 점검 순서</h2>
+
+  <ul class="checklist">
+    <li><span class="step-num">1</span><code>aws sts get-caller-identity --profile &lt;name&gt;</code> 실행</li>
+    <li><span class="step-num">2</span><code>aws configure list --profile &lt;name&gt;</code>로 설정 확인</li>
+    <li><span class="step-num">3</span><code>~/.aws/config</code>에서 <code>role_arn</code>, <code>source_profile</code> 확인</li>
+    <li><span class="step-num">4</span>source_profile의 인증 상태 별도 확인</li>
+    <li><span class="step-num">5</span><code>~/.aws/credentials</code>에서 Access Key / Session Token 확인</li>
+    <li><span class="step-num">6</span>환경변수 <code>AWS_*</code> 확인</li>
+    <li><span class="step-num">7</span>필요 시 <code>aws configure --profile &lt;name&gt;</code>으로 재등록</li>
+    <li><span class="step-num">8</span>다시 <code>sts get-caller-identity</code>로 검증</li>
+  </ul>
+
+
+  <h2><span class="num">10</span> 정리</h2>
+
+  <p>AWS CLI 인증 오류는 대부분 다음 중 하나에서 발생한다.</p>
 
   <div class="callout info">
-    <div class="callout-label">진단 첫 번째 명령</div>
-    <p>어떤 에러든 먼저 <code>aws sts get-caller-identity --profile &lt;name&gt;</code> 부터 실행하세요. 인증이 되면 AWS 측 문제, 안 되면 로컬 자격증명 문제입니다.</p>
+    <div class="callout-label">원인 체크리스트</div>
+    <p>프로파일명 오타 · credentials 파일에 자격증명 없음 · Access Key 삭제 또는 비활성화 · Session Token 만료 · AssumeRole의 source_profile 무효 · 환경변수에 오래된 자격증명 잔류</p>
   </div>
 
-  <footer class="footer">
+  <p>특정 AWS 서비스 명령이 실패했더라도 바로 서비스 문제로 보기보다는, 먼저 <code>aws sts get-caller-identity --profile &lt;name&gt;</code>으로 인증 상태를 확인하는 것이 좋다.</p>
+
+  <footer>
     <span>AWS CLI 트러블슈팅 가이드</span>
-    <span>2026-06-30</span>
+    <span>2026-07-02</span>
   </footer>
 
 </div>
@@ -772,10 +508,8 @@ The security token included in the request is invalid.</span></pre>
       const targetId = tab.dataset.target;
       const wrapper = document.getElementById(targetId);
       const os = tab.dataset.os;
-
       wrapper.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
       wrapper.querySelectorAll('.os-tab-pane').forEach(p => p.classList.remove('active'));
-
       tab.classList.add('active');
       wrapper.querySelector(`.os-tab-pane[data-os="${os}"]`).classList.add('active');
     });
