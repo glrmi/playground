@@ -34,11 +34,7 @@
 
   .container { max-width: 740px; margin: 0 auto; }
 
-  .header {
-    padding-bottom: 2.25rem;
-    margin-bottom: 2.5rem;
-    border-bottom: 1px solid var(--border);
-  }
+  .header { padding-bottom: 2.25rem; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
 
   .tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
 
@@ -73,14 +69,15 @@
     padding: 1px 6px; font-weight: 400; letter-spacing: 0;
   }
 
-  h3 {
-    font-size: 0.875rem; font-weight: 600; color: var(--text);
-    margin: 1.4rem 0 0.55rem; text-transform: uppercase; letter-spacing: 0.06em;
-  }
+  h3 { font-size: 0.875rem; font-weight: 600; color: var(--text); margin: 1.4rem 0 0.55rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
   p { color: var(--text-muted); margin-bottom: 0.7rem; font-size: 14px; }
-  hr { border: none; border-top: 1px solid var(--border); margin: 2.25rem 0; }
 
+  ul.body-list { margin: 0.5rem 0 0.75rem 1.2rem; }
+  ul.body-list li { font-size: 14px; color: var(--text-muted); margin-bottom: 0.25rem; }
+  ul.body-list li code { font-size: 12px; }
+
+  /* Concept grid */
   .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1rem 0; }
   @media (max-width: 500px) { .concept-grid { grid-template-columns: 1fr; } }
 
@@ -95,6 +92,7 @@
     border-radius: 3px; padding: 2px 7px; display: inline-block; word-break: break-all;
   }
 
+  /* OS Tab */
   .os-switch-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 1rem 0; }
   .os-tabs { display: flex; border-bottom: 1px solid var(--border); }
 
@@ -113,6 +111,7 @@
   .os-tab-pane { display: none; padding: 1.25rem; }
   .os-tab-pane.active { display: block; }
 
+  /* Terminal */
   .term { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 0.75rem 0; }
 
   .term-bar {
@@ -140,6 +139,7 @@
   .k  { color: #FF9900; }
   .v  { color: #A78BFA; }
 
+  /* Table */
   .table-wrap { overflow-x: auto; margin: 0.75rem 0; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
 
@@ -149,10 +149,11 @@
     border-bottom: 1px solid var(--border); font-weight: 700;
   }
 
-  tbody td { padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(37,42,56,0.6); color: var(--text-muted); vertical-align: top; }
+  tbody td { padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(37,42,56,0.6); color: var(--text-muted); vertical-align: top; line-height: 1.6; }
   tbody tr:last-child td { border-bottom: none; }
   tbody td:first-child { font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; color: var(--text); white-space: nowrap; }
 
+  /* Callout */
   .callout { border-radius: 0 7px 7px 0; border-left: 3px solid; padding: 0.85rem 1.1rem; margin: 0.85rem 0; background: var(--surface); }
   .callout.warn { border-color: var(--warn); }
   .callout.ok   { border-color: var(--ok); }
@@ -162,8 +163,10 @@
   .callout.warn .callout-label { color: var(--warn); }
   .callout.ok   .callout-label { color: var(--ok); }
   .callout.info .callout-label { color: var(--accent); }
-  .callout p { font-size: 13px; margin: 0; color: var(--text-muted); }
+  .callout p { font-size: 13px; margin: 0 0 0.4rem; color: var(--text-muted); }
+  .callout p:last-child { margin: 0; }
 
+  /* Checklist */
   .checklist { list-style: none; padding: 0; margin: 0.75rem 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 
   .checklist li {
@@ -179,6 +182,11 @@
     background: var(--accent-dim); border: 1px solid var(--accent-border);
     border-radius: 3px; padding: 1px 6px; flex-shrink: 0; margin-top: 1px;
     font-variant-numeric: tabular-nums;
+  }
+
+  .check-box {
+    width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px;
+    flex-shrink: 0; margin-top: 3px; background: var(--surface2);
   }
 
   code {
@@ -211,6 +219,9 @@
     </div>
   </header>
 
+  <!-- 개요 -->
+  <h2>개요</h2>
+
   <p>AWS CLI를 사용하다 보면 특정 프로파일로 명령을 실행했을 때 다음과 같은 인증 오류를 만날 수 있다.</p>
 
   <div class="term">
@@ -220,8 +231,10 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
   <p>처음 보면 AWS 서비스 자체 문제처럼 보일 수 있지만, 실제로는 로컬에 저장된 AWS CLI 프로파일, Access Key, Session Token, <code>source_profile</code> 설정 문제인 경우가 많다.</p>
+  <p>이번 글에서는 AWS CLI 인증 문제가 발생했을 때 어떤 순서로 확인하면 좋은지 정리한다.</p>
 
 
+  <!-- 1 -->
   <h2><span class="num">01</span> AWS CLI 설정 파일 구조</h2>
 
   <p>AWS CLI는 기본적으로 두 개의 파일을 사용한다.</p>
@@ -230,13 +243,13 @@ The security token included in the request is invalid.</span></pre>
     <div class="concept-card">
       <div class="c-eyebrow">설정 파일</div>
       <div class="c-title">config</div>
-      <p class="c-desc">리전, 출력 형식, Role ARN, source_profile 등 동작 설정을 저장한다. 구성 방식에 따라 민감 정보가 포함될 수 있으므로 외부 공유 전 확인이 필요하다.</p>
+      <p class="c-desc">리전, 출력 형식, Role ARN, <code>source_profile</code> 등 동작 설정을 저장한다. 구성 방식에 따라 민감 정보가 포함될 수 있으므로 외부 공유 전 확인이 필요하다.</p>
       <span class="file-pill">~/.aws/config</span>
     </div>
     <div class="concept-card">
       <div class="c-eyebrow">인증 파일</div>
       <div class="c-title">credentials</div>
-      <p class="c-desc">Access Key ID, Secret Access Key, Session Token 저장. 외부 노출 금지.</p>
+      <p class="c-desc">Access Key ID, Secret Access Key, Session Token 등 실제 자격증명을 저장한다. 외부 노출 금지.</p>
       <span class="file-pill">~/.aws/credentials</span>
     </div>
   </div>
@@ -260,6 +273,7 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
 
+  <!-- 2 -->
   <h2><span class="num">02</span> 먼저 실행할 진단 명령어</h2>
 
   <p>인증 문제가 발생하면 가장 먼저 아래 명령어를 실행한다.</p>
@@ -270,18 +284,24 @@ The security token included in the request is invalid.</span></pre>
 
 <span class="cm"># 정상일 때</span>
 <span class="s">{
-    "UserId": "AROAXXXXXXXXXX:session",
-    "Account": "123456789012",
-    "Arn": "arn:aws:sts::123456789012:assumed-role/ExampleRole/session"
+  "UserId": "AROAXXXXXXXXXX:session",
+  "Account": "123456789012",
+  "Arn": "arn:aws:sts::123456789012:assumed-role/ExampleRole/session"
 }</span>
 
 <span class="cm"># 실패할 때</span>
 <span class="e">An error occurred (InvalidClientTokenId) ...</span></pre>
   </div>
 
-  <p>정상이라면 현재 인증된 계정과 ARN이 출력된다. 실패한다면 자격증명, Session Token, Role Assume 설정, 환경변수 중 하나를 의심해야 한다.</p>
+  <p>실패한다면 자격증명, Session Token, Role Assume 설정, 환경변수 중 하나를 의심해야 한다.</p>
+
+  <div class="callout info">
+    <div class="callout-label">Tip</div>
+    <p>특정 AWS 서비스 명령이 실패했더라도, 먼저 <code>sts get-caller-identity</code>로 인증 자체가 되는지 확인하는 것이 좋다.</p>
+  </div>
 
 
+  <!-- 3 -->
   <h2><span class="num">03</span> 프로파일 목록과 설정 확인</h2>
 
   <div class="term">
@@ -293,26 +313,38 @@ The security token included in the request is invalid.</span></pre>
 <span class="p">$</span> <span class="c">aws configure list --profile &lt;profile-name&gt;</span></pre>
   </div>
 
-  <p>확인할 항목: 어떤 Access Key를 쓰는지, 환경변수에서 값을 가져오는지, <code>source_profile</code>을 사용하는 AssumeRole 구조인지.</p>
+  <p>확인할 항목:</p>
+  <ul class="body-list">
+    <li>어떤 Access Key를 사용하고 있는지</li>
+    <li>리전이 설정되어 있는지</li>
+    <li>환경변수에서 값을 가져오고 있는지</li>
+    <li><code>source_profile</code>을 사용하는 AssumeRole 구조인지</li>
+  </ul>
 
 
+  <!-- 4 -->
   <h2><span class="num">04</span> AssumeRole 프로파일의 source_profile 확인</h2>
 
-  <p>직접 Access Key를 갖지 않고 다른 프로파일을 기반으로 Role을 Assume하는 구조가 있다.</p>
+  <p>AWS CLI 프로파일 중에는 직접 Access Key를 가지지 않고, 다른 프로파일을 기반으로 Role을 Assume하는 경우가 있다.</p>
 
   <div class="term">
     <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">~/.aws/config</div></div>
     <pre><span class="k">[profile workload-admin]</span>
 <span class="v">region</span>            = ap-northeast-2
 <span class="v">role_arn</span>          = arn:aws:iam::123456789012:role/ExampleRole
-<span class="v">source_profile</span>    = default         <span class="cm"># default 프로파일의 자격증명으로 Role Assume</span>
+<span class="v">source_profile</span>    = default
 <span class="v">role_session_name</span> = workload-admin-session</pre>
   </div>
 
+  <p>이 경우 <code>workload-admin</code>은 직접 Access Key를 사용하는 것이 아니라, <code>default</code> 프로파일의 자격증명을 사용해 Role을 Assume한다.</p>
+
   <div class="callout warn">
     <div class="callout-label">중요</div>
-    <p>이 구조에서는 <code>credentials</code> 파일에 <code>[workload-admin]</code> 블록이 없어도 정상이다. 실제 Access Key는 <code>source_profile</code>인 <code>default</code>에만 있으면 된다. <code>workload-admin</code>에서 에러가 발생하면 <strong>source_profile인 default를 먼저 확인</strong>해야 한다.</p>
+    <p>이 구조에서는 <code>credentials</code> 파일에 <code>[workload-admin]</code> 블록이 없어도 정상이다.</p>
+    <p>실제 Access Key는 <code>source_profile</code>로 지정된 <code>default</code> 프로파일에만 있으면 된다.</p>
   </div>
+
+  <p><code>workload-admin</code>에서 <code>InvalidClientTokenId</code>가 발생했다면, <code>workload-admin</code> 자체보다 먼저 <code>source_profile</code>인 <code>default</code>를 확인해야 한다.</p>
 
   <div class="term">
     <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
@@ -324,41 +356,38 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
 
+  <!-- 5 -->
   <h2><span class="num">05</span> 자주 발생하는 에러와 원인</h2>
 
   <div class="table-wrap">
     <table>
       <thead>
-        <tr>
-          <th>에러 메시지</th>
-          <th>주요 원인</th>
-          <th>확인할 것</th>
-        </tr>
+        <tr><th>에러 메시지</th><th>주요 원인</th><th>확인할 것</th></tr>
       </thead>
       <tbody>
         <tr>
           <td>InvalidClientTokenId</td>
-          <td>토큰 또는 자격증명 무효. AssumeRole 중 발생했다면 대상 프로파일보다 source_profile의 자격증명을 먼저 확인</td>
-          <td>source_profile의 Access Key / Session Token</td>
+          <td>토큰 또는 자격증명 무효. AssumeRole 중 발생했다면 대상 프로파일보다 <code>source_profile</code>의 자격증명을 먼저 확인한다.</td>
+          <td><code>source_profile</code>의 Access Key / Session Token</td>
         </tr>
         <tr>
           <td>InvalidAccessKeyId</td>
-          <td>Access Key가 존재하지 않음</td>
-          <td>credentials 파일의 Access Key</td>
+          <td>Access Key가 AWS에 존재하지 않음</td>
+          <td><code>credentials</code> 파일의 Access Key</td>
         </tr>
         <tr>
           <td>ExpiredTokenException</td>
           <td>임시 토큰 만료</td>
-          <td>aws_session_token 갱신</td>
+          <td><code>aws_session_token</code> 갱신</td>
         </tr>
         <tr>
           <td>NoCredentialProviders</td>
           <td>자격증명 없음</td>
-          <td>프로파일 존재 여부, credentials 파일</td>
+          <td>프로파일 존재 여부, <code>credentials</code> 파일</td>
         </tr>
         <tr>
           <td>config profile could not be found</td>
-          <td>config/credentials에 프로파일 없음</td>
+          <td>config/credentials에 해당 프로파일 없음</td>
           <td>프로파일명 오타, 파일 위치</td>
         </tr>
       </tbody>
@@ -366,7 +395,10 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
 
+  <!-- 6 -->
   <h2><span class="num">06</span> credentials 파일 직접 확인</h2>
+
+  <p>프로파일 문제가 의심되면 <code>credentials</code> 파일을 직접 확인한다.</p>
 
   <div class="os-switch-wrap" id="switch-cred">
     <div class="os-tabs">
@@ -389,13 +421,15 @@ The security token included in the request is invalid.</span></pre>
 
 <span class="cm"># 편집</span>
 <span class="p">$</span> <span class="c">vi ~/.aws/credentials</span>
-<span class="p">$</span> <span class="c">code ~/.aws/credentials</span>   <span class="cm"># VS Code</span></pre>
+<span class="p">$</span> <span class="c">code ~/.aws/credentials</span>   <span class="cm"># VS Code 사용 시</span></pre>
       </div>
     </div>
   </div>
 
+  <p>파일 구조 예시:</p>
+
   <div class="term">
-    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">credentials 파일 예시</div></div>
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="term-label">~/.aws/credentials</div></div>
     <pre><span class="k">[default]</span>
 <span class="v">aws_access_key_id</span>     = AKIA...
 <span class="v">aws_secret_access_key</span> = ...
@@ -407,14 +441,18 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
   <div class="callout warn">
-    <div class="callout-label">임시 자격증명 주의</div>
-    <p><code>aws_session_token</code>이 있으면 임시 자격증명이다. 수 시간~수일 내 만료되므로 인증 오류 발생 시 가장 먼저 확인해야 한다. 장기 Access Key로 전환할 때는 credentials 파일에서 <code>aws_session_token</code> 항목을 직접 제거해야 한다.</p>
+    <div class="callout-label">aws_session_token 주의</div>
+    <p><code>aws_session_token</code>이 있으면 임시 자격증명이다.</p>
+    <p>임시 자격증명은 수 시간~수일 내 만료될 수 있으므로, 인증 오류가 발생했을 때 먼저 확인해야 한다.</p>
+    <p>장기 Access Key로 전환할 때는 <code>credentials</code> 파일에서 기존 <code>aws_session_token</code> 항목을 직접 제거해야 할 수 있다.</p>
   </div>
 
 
+  <!-- 7 -->
   <h2><span class="num">07</span> 환경변수 확인</h2>
 
-  <p>credentials 파일을 수정했는데도 계속 오류가 발생한다면 환경변수를 확인해야 한다. AWS CLI는 환경변수에 설정된 자격증명을 우선 사용할 수 있다.</p>
+  <p><code>credentials</code> 파일을 수정했는데도 계속 같은 오류가 발생한다면 환경변수를 확인해야 한다.</p>
+  <p>AWS CLI는 환경변수, 프로파일 설정 파일, 명령줄 옵션 등 여러 위치에서 설정값을 읽는다. 환경변수에 오래된 자격증명이 남아 있으면, <code>credentials</code> 파일을 정상으로 수정해도 인증 오류가 계속 발생할 수 있다.</p>
 
   <div class="os-switch-wrap" id="switch-env">
     <div class="os-tabs">
@@ -451,14 +489,14 @@ The security token included in the request is invalid.</span></pre>
   </div>
 
 
+  <!-- 8 -->
   <h2><span class="num">08</span> 프로파일 재등록</h2>
 
-  <p>장기 Access Key 기반 프로파일을 등록하거나 갱신할 때 사용한다. 임시 자격증명 기반 프로파일을 사용 중이었다면 기존 <code>aws_session_token</code>이 남아 있지 않은지 함께 확인한다.</p>
+  <p>장기 Access Key 기반 프로파일을 등록하거나 갱신할 때는 다음 명령어를 사용한다.</p>
 
   <div class="term">
     <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
-    <pre><span class="cm"># 프로파일 등록 (없으면 생성, 있으면 갱신)</span>
-<span class="p">$</span> <span class="c">aws configure --profile &lt;profile-name&gt;</span>
+    <pre><span class="p">$</span> <span class="c">aws configure --profile &lt;profile-name&gt;</span>
 
 <span class="k">AWS Access Key ID [None]:</span>        <span class="v">AKIA...</span>
 <span class="k">AWS Secret Access Key [None]:</span>    <span class="v">xxxxxxxx</span>
@@ -469,14 +507,21 @@ The security token included in the request is invalid.</span></pre>
 <span class="p">$</span> <span class="c">aws sts get-caller-identity --profile &lt;profile-name&gt;</span></pre>
   </div>
 
+  <div class="callout info">
+    <div class="callout-label">참고</div>
+    <p>AssumeRole 프로파일을 구성하는 경우에는 Access Key 등록 외에도 <code>~/.aws/config</code> 파일에 <code>role_arn</code>, <code>source_profile</code> 설정이 필요하다.</p>
+    <p>임시 자격증명 기반 프로파일을 사용 중이었다면 기존 <code>aws_session_token</code>이 남아 있지 않은지 함께 확인한다.</p>
+  </div>
 
+
+  <!-- 9 -->
   <h2><span class="num">09</span> 추천 점검 순서</h2>
 
   <ul class="checklist">
     <li><span class="step-num">1</span><code>aws sts get-caller-identity --profile &lt;name&gt;</code> 실행</li>
     <li><span class="step-num">2</span><code>aws configure list --profile &lt;name&gt;</code>로 설정 확인</li>
     <li><span class="step-num">3</span><code>~/.aws/config</code>에서 <code>role_arn</code>, <code>source_profile</code> 확인</li>
-    <li><span class="step-num">4</span>source_profile의 인증 상태 별도 확인</li>
+    <li><span class="step-num">4</span><code>source_profile</code>의 인증 상태 별도 확인</li>
     <li><span class="step-num">5</span><code>~/.aws/credentials</code>에서 Access Key / Session Token 확인</li>
     <li><span class="step-num">6</span>환경변수 <code>AWS_*</code> 확인</li>
     <li><span class="step-num">7</span>필요 시 <code>aws configure --profile &lt;name&gt;</code>으로 재등록</li>
@@ -484,16 +529,24 @@ The security token included in the request is invalid.</span></pre>
   </ul>
 
 
-  <h2><span class="num">10</span> 정리</h2>
+  <!-- 정리 -->
+  <h2>정리</h2>
 
   <p>AWS CLI 인증 오류는 대부분 다음 중 하나에서 발생한다.</p>
 
   <div class="callout info">
     <div class="callout-label">원인 체크리스트</div>
-    <p>프로파일명 오타 · credentials 파일에 자격증명 없음 · Access Key 삭제 또는 비활성화 · Session Token 만료 · AssumeRole의 source_profile 무효 · 환경변수에 오래된 자격증명 잔류</p>
+    <p>프로파일명 오타 · <code>credentials</code> 파일에 자격증명 없음 · Access Key 삭제 또는 비활성화 · Session Token 만료 · AssumeRole의 <code>source_profile</code> 무효 · 환경변수에 오래된 자격증명 잔류</p>
   </div>
 
-  <p>특정 AWS 서비스 명령이 실패했더라도 바로 서비스 문제로 보기보다는, 먼저 <code>aws sts get-caller-identity --profile &lt;name&gt;</code>으로 인증 상태를 확인하는 것이 좋다.</p>
+  <p>특정 AWS 서비스 명령이 실패했더라도 바로 서비스 문제로 보기보다는, 먼저 아래 명령으로 인증 상태를 확인하는 것이 좋다.</p>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <pre><span class="p">$</span> <span class="c">aws sts get-caller-identity --profile &lt;profile-name&gt;</span></pre>
+  </div>
+
+  <p>인증이 되면 AWS 서비스 설정이나 권한 문제를 보면 되고, 인증이 안 되면 로컬 프로파일과 자격증명부터 점검하면 된다.</p>
 
   <footer>
     <span>AWS CLI 트러블슈팅 가이드</span>
